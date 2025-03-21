@@ -228,26 +228,60 @@ superficie (Punto) = error "no se puede calcular la superficie del punto"
 
 type Numero = Int
 
-data Expr = Suma Numero Numero 
-          | Resta Numero Numero 
-          | Producto Numero Numero 
-          | Division Numero Numero 
+data Expr = Base Numero
+          | Suma Expr Expr 
+          | Resta Expr Expr 
+          | Producto Expr Expr 
+          | Division Expr Expr 
           deriving (Eq, Show)
+
+instance Num Expr where
+ fromInteger x = Base (fromInteger x)
+ (+) = Suma
+ (-) = Resta
+ (*) = Producto
+ abs (Base x) = Base (abs x)
+ signum (Base x) = Base (signum x)
 
 --b)Luego, definir la semántica del tipo "Expr", i.e., definir una función que evalúa (en forma
 --natural) una expresión aritmética "Expr". Por ejemplo: 
 
 --evaluar (Resta (Producto (Suma 5 3) 2) 6) = 10
 
+evaluar :: Expr -> Numero
+evaluar (Base x) = x
+evaluar (Suma x y) = evaluar x + evaluar y
+evaluar (Resta x y) = evaluar x - evaluar y
+evaluar (Producto x y) = evaluar x * evaluar y
+evaluar (Division x y) = evaluar x `div` evaluar y
+
 --EJERCICIO 6:
 
 --a) Definir un tipo "BinTree" que permita representar un arbol binario
 --polimorfico (i.e, en cuyos nodos se almacenen valores de tipo generico "a").
 
+data BinTree a = Vacio
+               | Rama (BinTree a) a (BinTree a)
+
 --b) Definir una función recursiva que devuelva la profundidad de un "BinTree". 
+
+profundidad :: BinTree a -> Int
+profundidad (Vacio) = 0
+profundidad (Rama izq _ der) = 1 + max (profundidad izq) (profundidad der)
 
 --c) Definir una funcion general de fold que opera sobre un "BinTree" y luego, redefinir la funcion 
 --de profundidad del item b en términos de esta última. 
+
+fold :: Num a => BinTree a -> (a -> a) -> a 
+fold (Vacio) f = 0
+fold (Rama izq k der) f = f k + (fold izq f) + (fold der f) 
+
+_profundidad :: BinTree a -> Int
+_profundidad (Vacio) = 0
+_profundidad (Rama izq _ der) = 
+
+-- profoldidad :: BinTree a -> Int
+-- profoldidad tree = fold tree (1) 
 
 --d) Definir una función recuriva que devuelve una lista con los elementos del BinTree, y luego,
 -- redefinirla en términos de la función fold del item c.
